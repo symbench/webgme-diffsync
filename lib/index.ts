@@ -1,4 +1,4 @@
-import {GMENode, CommonShadow, Transformable} from './Types';
+import {GMENode, CommonShadow, Transformable} from './types';
 
 interface Patches {
     timestamp: number;
@@ -32,7 +32,7 @@ class PatchesQueue {
             } else {
                 return next;
             }
-        }, this.internal[0])
+        }, this.internal[0]);
     }
 
     clearPrevious(timeStamp: number) {
@@ -65,10 +65,10 @@ export class WebGMEDiffSyncer {
     }
 
     onUpdatesFromServer(serverState: Transformable<CommonShadow>) {
-         const newState = serverState.toShadow();
-         const patches = this.diff(this.commonShadow, newState) as Patches;
-         this.commonShadow = newState;
-         if(!patches.patches.length) {
+        const newState = serverState.toShadow();
+        const patches = this.diff(this.commonShadow, newState) as Patches;
+        this.commonShadow = newState;
+        if(!patches.patches.length) {
             this.clientQueue.clearPrevious(Date.now());
         } else {
             this.serverQueue.enqueue(patches);

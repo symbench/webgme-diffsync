@@ -4,7 +4,7 @@
     "noImplicitAny": true,
     "removeComments": true,
     "preserveConstEnums": true,
-    "outFile": "./lib/build/webgme-diffsync.js",
+    "outDir": "./lib/build/",
     "sourceMap": true,
     "moduleResolution": "node"
   },

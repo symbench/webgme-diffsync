@@ -34,3 +34,4 @@ tmp/
 blob-local-storage/
 
 lib/build
+test-tmp

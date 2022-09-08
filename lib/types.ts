@@ -1,4 +1,4 @@
-/// <reference path="./types/webgme.d.ts" />
+import './types/webgme';
 
 export interface Transformable<T extends CommonShadow> {
     toShadow: () => Promise<T>
@@ -25,19 +25,15 @@ export interface WJIJson extends CommonShadow{
 }
 
 export class GMENode implements Transformable<WJIJson> {
-    nodeId: string;
-    core: GmeClasses.Core;
+    _node: Core.Node;
     rootNode: Core.Node;
     importer: any;
-    constructor(nodeId: string, rootNode: Core.Node, core: GmeClasses.Core, Importer: any) {
-        this.nodeId = nodeId;
-        this.rootNode = rootNode;
-        this.core = core;
-        this.importer = new Importer(core, rootNode);
+    constructor(node: Core.Node, importer: any) {
+        this._node = node;
+        this.importer = importer;
     }
 
     async toShadow(): Promise<WJIJson> {
-        const node = await this.core.loadByPath(this.rootNode, this.nodeId);
-        return await this.importer.toJSON(node);
+        return await this.importer.toJSON(this._node) as WJIJson;
     }
 }

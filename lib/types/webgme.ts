@@ -11,7 +11,7 @@
 // Documentation: https://editor.webgme.org/docs/source/index.html
 // https://github.com/webgme/webgme/tree/master/config
 
-declare module "webgme" {
+declare module 'webgme' {
     export class Standalone {
         constructor(config: any);
         start(fn: any): void;
@@ -21,7 +21,7 @@ declare module "webgme" {
     export function standaloneServer(config: any): void;
 }
 
-declare module "blob/BlobMetadata" {
+declare module 'blob/BlobMetadata' {
     export default class BlobMetadata implements Blobs.BlobMetadata {
         constructor();
         name: string;
@@ -34,58 +34,58 @@ declare module "blob/BlobMetadata" {
 
 
 
-declare module "plugin/PluginConfig" {
+declare module 'plugin/PluginConfig' {
     export = GmeConfig.PluginConfig;
 }
 
-declare module "webgme/config/config.default" {
+declare module 'webgme/config/config.default' {
     export = GmeConfig.config;
 }
 
-declare module "webgme/common" {
+declare module 'webgme/common' {
     export = GmeCommon;
 }
 
-declare module "common/util/canon" {
+declare module 'common/util/canon' {
     export = GmeUtil.CANON;
 }
 
-declare module "common/util/assert" {
+declare module 'common/util/assert' {
     export = GmeUtil.ASSERT;
 }
 
-declare module "js/PanelBase/PanelBase" {
+declare module 'js/PanelBase/PanelBase' {
     export = GmePanel.PanelBase;
 }
 
-declare module "js/PanelBase/PanelBaseWithHeader" {
+declare module 'js/PanelBase/PanelBaseWithHeader' {
     export = GmePanel.PanelBaseWithHeader;
 }
 
-declare module "js/PanelManager/IActivePanel" {
+declare module 'js/PanelManager/IActivePanel' {
     export = GmePanel.IActivePanel;
 }
 
-declare module "js/NodePropertyNames" {
+declare module 'js/NodePropertyNames' {
     var names: Gme.NodePropertyNames;
     export = names;
 }
 
-declare module "js/RegistryKeys" {
+declare module 'js/RegistryKeys' {
     const keys: Gme.RegistryKeys;
     export = keys;
 }
 
-declare module "js/Utils/GMEConcepts" {
+declare module 'js/Utils/GMEConcepts' {
     export = Gme.Concepts;
 }
 
-declare module "js/Utils/PreferencesHelper" {
+declare module 'js/Utils/PreferencesHelper' {
     const helper: Gme.PreferenceHelper;
     export = helper;
 }
 
-declare module "plugin/PluginBase" {
+declare module 'plugin/PluginBase' {
     // const pb: GmePlugin.PluginBase;
     export = GmePlugin.PluginBase;
 }
@@ -169,7 +169,7 @@ declare namespace Gme {
     /**
      * primary values are: 'load' 'update' 'unload'
      */
-    export type TerritoryEventType = "load" | "unload" | "update" | "complete" | "incomplete";
+    export type TerritoryEventType = 'load' | 'unload' | 'update' | 'complete' | 'incomplete';
 
     interface Event {
         id?: string;
@@ -2360,14 +2360,14 @@ declare namespace GmeClasses {
             /** Name of branch to create. */
             (branchName: string, newHash: GmeStorage.CommitHash, callback: GmeCommon.ResultCallback<GmeStorage.CommitResult>): void;
             (branchName: string, newHash: GmeStorage.CommitHash, ): Promise<GmeStorage.CommitResult>;
-        }
+        };
         /**
          * Creates a new tag pointing to the provided commit hash.
          */
         createTag: {
             (tagName: string, commitHash: GmeStorage.CommitHash, callback: GmeStorage.ErrorOnlyCallback): void;
             (tagName: string, commitHash: GmeStorage.CommitHash): Promise<GmeStorage.ErrorOnlyCallback>;
-        }
+        };
         /**
         * Deletes the given branch.
         */
@@ -2375,7 +2375,7 @@ declare namespace GmeClasses {
             /** Name of branch to delete. */
             (branchName: string, oldHash: GmeStorage.CommitHash, callback: GmeCommon.ResultCallback<GmeStorage.CommitResult>): void;
             (branchName: string, oldHash: GmeStorage.CommitHash, ): Promise<GmeStorage.CommitResult>;
-        }
+        };
         /**
          * Deletes the given tag.
          */
@@ -2383,7 +2383,7 @@ declare namespace GmeClasses {
             /** Name of tag to delete. */
             (tagName: string, callback: GmeStorage.ErrorOnlyCallback): void;
             (tagname: string): Promise<void>;
-        }
+        };
         /**
          * Retrieves all branches and their current heads within the project.
          */
@@ -2392,14 +2392,14 @@ declare namespace GmeClasses {
             (callback: GmeCommon.ResultCallback<GmeCommon.Dictionary<GmeStorage.CommitHash>>): void;
             /** On success the promise will be resolved with Object.module:Storage~CommitHash> result. */
             (): Promise<GmeCommon.Dictionary<GmeStorage.CommitHash>>;
-        }
+        };
         /**
          * Retrieves the commit hash for the head of the branch.
          */
         getBranchHash: {
             (branchName: string, callback: GmeStorage.CommitHashCallback): void;
             (branchName: string): Promise<GmeStorage.CommitHash>;
-        }
+        };
         /**
          * Retrieves and array of the latest 
          * (sorted by timestamp) commits for the project. 
@@ -2415,7 +2415,7 @@ declare namespace GmeClasses {
         getCommits: {
             (before: number | GmeStorage.CommitHash, number: number, callback: GmeCommon.ResultCallback<GmeStorage.CommitObject>): void;
             (before: number | GmeStorage.CommitHash, number: number): Promise<GmeStorage.CommitObject>;
-        }
+        };
         /**
          * Retrieves the Class ancestor of two commits. 
          * If no ancestor exists it will result in an error.
@@ -2423,7 +2423,7 @@ declare namespace GmeClasses {
         getClassAncestorCommit: {
             (commitA: GmeStorage.CommitHash, commitB: GmeStorage.CommitHash, callback: GmeStorage.CommitHashCallback): void;
             (commitA: GmeStorage.CommitHash, commitB: GmeStorage.CommitHash): Promise<GmeStorage.CommitHash>;
-        }
+        };
         /**
          * Retrieves an array of commits starting from a branch(es) and/or commitHash(es). 
          * The result is ordered by the rules (applied in order) 
@@ -2433,20 +2433,20 @@ declare namespace GmeClasses {
         getHistory: {
             (start: GmeCommon.ProjectStart, number: number, callback: GmeCommon.ResultCallback<Array<GmeStorage.CommitObject>>): void;
             (start: GmeCommon.ProjectStart, number: number): Promise<Array<GmeStorage.CommitObject>>;
-        }
+        };
         /**
          * Retrieves all tags and their commits hashes within the project.
          */
         getTags: {
             (callback: GmeStorage.CommitHashCallback): void;
             (): Promise<GmeStorage.CommitHash>;
-        }
+        };
 
         loadObject: {
             /** Hash of object to load. */
             (key: string, callback: GmeCommon.ResultCallback<GmeStorage.CommitObject>): void;
             (key: string): Promise<GmeStorage.CommitObject>;
-        }
+        };
         /** 
          * Collects the objects from the server and pre-loads 
          * them into the cache making the load of multiple objects faster.
@@ -2457,7 +2457,7 @@ declare namespace GmeClasses {
         loadPaths: {
             (rootKey: string, paths: string[], callback: GmeStorage.ErrorOnlyCallback): void;
             (rootKey: string, paths: string[]): Promise<GmeStorage.ErrorOnlyCallback>;
-        }
+        };
 
         /**
          * Makes a commit to data base. 
@@ -2473,7 +2473,7 @@ declare namespace GmeClasses {
             (branchName: string, parents: GmeStorage.CommitHash[],
                 rootHash: Core.ObjectHash, coreObjects: Core.DataObject,
                 msg: string): Promise<GmeStorage.CommitResult>;
-        }
+        };
         /**
          * Updates the head of the branch.
          */
@@ -2483,7 +2483,7 @@ declare namespace GmeClasses {
                 callback: GmeCommon.ResultCallback<GmeStorage.CommitResult>): void;
             (branchName: string, newHash: GmeStorage.CommitHash,
                 oldHash: GmeStorage.CommitHash): Promise<GmeStorage.CommitResult>;
-        }
+        };
     }
 }
 
@@ -2583,7 +2583,7 @@ declare namespace GmePlugin {
         sendNotification: {
             (message: string, callback: GmeCommon.ResultCallback<Core.DataObject>): void;
             (message: string): Promise<Core.DataObject>;
-        }
+        };
         setCurrentConfig(newConfig: GmeConfig.GmeConfig): void;
         updateMeta(generatedMeta: any): void;
         updateSuccess(value: boolean, message: TemplateStringsArray): void;
@@ -2868,27 +2868,27 @@ declare namespace GmeCommon {
 
     export type VoidFn = () => void;
     export interface DefStringObject {
-        type: "string";
+        type: 'string';
         regex?: string;
         enum?: string[];
     }
     export interface DefIntegerObject {
-        type: "integer";
+        type: 'integer';
         min?: number;
         max?: number;
         enum?: number[];
     }
     export interface DefFloatObject {
-        type: "float";
+        type: 'float';
         min?: number;
         max?: number;
         enum?: number[];
     }
     export interface DefBoolObject {
-        type: "boolean";
+        type: 'boolean';
     }
     export interface DefAssetObject {
-        type: "asset";
+        type: 'asset';
     }
     export type DefObject = DefStringObject
         | DefIntegerObject | DefFloatObject
@@ -3010,7 +3010,7 @@ declare namespace Blobs {
         getArtifact: {
             (metadataHash: GmeCommon.MetadataHash, callback: GmeCommon.ResultCallback<GmeClasses.Artifact>): void;
             (metadataHash: GmeCommon.MetadataHash): Promise<GmeClasses.Artifact>;
-        }
+        };
         getMetadataURL(metadataHash: GmeCommon.MetadataHash): string;
         getRelativeMetadataURL(metadataHash: GmeCommon.MetadataHash): string;
         getViewURL(metadataHash: GmeCommon.MetadataHash, subpath: string): string;
@@ -3021,40 +3021,40 @@ declare namespace Blobs {
         getSubObject: {
             (metadataHash: GmeCommon.MetadataHash, subpath: string, callback: GmeCommon.ResultCallback<Core.DataObject>): void;
             (metadataHash: GmeCommon.MetadataHash, subpath: string): Promise<Core.DataObject>;
-        }
+        };
         getObject: {
             (metadataHash: GmeCommon.MetadataHash, callback: GmeCommon.ResultCallback<GmeCommon.Content>, subpath: string): void;
             (metadataHash: GmeCommon.MetadataHash, subpath: string): Promise<GmeCommon.Content>;
-        }
+        };
         getObjectAsString: {
             (metadataHash: GmeCommon.MetadataHash, callback: GmeCommon.ResultCallback<GmeCommon.MetadataHash>): GmeCommon.ContentString;
             (metadataHash: GmeCommon.MetadataHash): Promise<GmeCommon.ContentString>;
-        }
+        };
         getObjectAsJSON: {
             (metadataHash: GmeCommon.MetadataHash, callback: GmeCommon.ResultCallback<JSON>): void;
             (metadataHash: GmeCommon.MetadataHash): Promise<JSON>;
-        }
+        };
         getMetadata: {
             (metadataHash: GmeCommon.MetadataHash, callback: GmeCommon.ResultCallback<GmeCommon.Metadata>): void;
             (metadataHash: GmeCommon.MetadataHash): Promise<GmeCommon.Metadata>;
-        }
+        };
         getHumanSize(bytes: number, si: boolean): string;
         putFile: {
             (name: GmeCommon.Name, data: GmeCommon.Payload, callback: GmeCommon.ResultCallback<GmeCommon.MetadataHash>): void;
             (name: GmeCommon.Name, data: GmeCommon.Payload): Promise<GmeCommon.MetadataHash>;
-        }
+        };
         putMetadata: {
             (metadataDescriptor: BlobMetadataDescriptor, callback: GmeCommon.ResultCallback<GmeCommon.MetadataHash>): void;
             (metadataDescriptor: BlobMetadataDescriptor): Promise<GmeCommon.MetadataHash>;
-        }
+        };
         putFiles: {
             (o: { [name: string]: GmeCommon.Payload }, callback: GmeCommon.ResultCallback<GmeCommon.MetadataHash[]>): void;
             (o: { [name: string]: GmeCommon.Payload }): Promise<GmeCommon.MetadataHash[]>;
-        }
+        };
         saveAllArtifacts: {
             (callback: GmeCommon.ResultCallback<GmeCommon.MetadataHash[]>): void;
             (): Promise<GmeCommon.MetadataHash[]>;
-        }
+        };
     }
 
 }
@@ -3102,11 +3102,11 @@ declare namespace Core {
      */
     export interface MixinViolation {
         /** The severity of the given error. */
-        severity?: "error" | "warning";
+        severity?: 'error' | 'warning';
         /** What kind of violation */
-        type?: "missing" | "attribute collision" | "set collision"
-        | "pointer collision" | "containment collision" | "aspect collision"
-        | "constraint collision" | undefined;
+        type?: 'missing' | 'attribute collision' | 'set collision'
+        | 'pointer collision' | 'containment collision' | 'aspect collision'
+        | 'constraint collision' | undefined;
         /** The name of the affected rule definition (if available). */
         ruleName?: string | undefined;
         /** The name of the affected rule definition (if available). */
@@ -3313,7 +3313,7 @@ declare namespace GmeConfig {
          * available options (ordered by level of complexity 
          * and sophistication) are: 'basic', 'basic2' and 'basic3'.
          */
-        defaultConnectionRouter: "basic" | "basic2" | "basic3";
+        defaultConnectionRouter: 'basic' | 'basic2' | 'basic3';
 
         /**
          * Enable [raven-js](https://docs.sentry.io/clients/javascript/)
@@ -3360,7 +3360,7 @@ declare namespace GmeConfig {
              *    config.addOn.basePaths = ['./src/addon/core'];
              */
             basePaths: string[];
-        }
+        };
         /**  Authentication related settings. */
         authentication: {
             /**
@@ -3456,7 +3456,7 @@ declare namespace GmeConfig {
                  */
                 tokenGenerator: string;
             }
-        }
+        };
         /** Bin script related settings. */
         bin: {
             /**
@@ -3478,7 +3478,7 @@ declare namespace GmeConfig {
              *   config.core.enableCustomConstraints = false;
              */
             enableCustomConstraints: boolean;
-        }
+        };
         /**
          * If true will add extra debug messages and also 
          * enable experimental Visualizers, (URL equivalent (only on client side) ?debug=true).
@@ -3519,7 +3519,7 @@ declare namespace GmeConfig {
              *   config.executor.labelJobs = './labelJobs.json';
              */
             labelJobs: string;
-        }
+        };
         /** Mongo database related settings. */
         mongo: {
             /**
@@ -3563,7 +3563,7 @@ declare namespace GmeConfig {
              *   config.plugin.serverResultTimeout = 60000;
              */
             serverResultTimeout: number;
-        }
+        };
         /** Additional paths to for requirejs. 
          * Custom paths that will be added to the 
          * paths of requirejs configuration. 
@@ -3582,7 +3582,7 @@ declare namespace GmeConfig {
              *   config.rest.components = {};
              */
             components: any;
-        }
+        };
         /** Seed related settings. */
         seedProjects: {
             /**
@@ -3607,7 +3607,7 @@ declare namespace GmeConfig {
              *   config.seedProjects.basePaths = ['./seeds'];
              */
             basePaths: string[];
-        }
+        };
         /** Server related settings. */
         server: {
             /**
@@ -3649,7 +3649,7 @@ declare namespace GmeConfig {
              *   config.server.behindSecureProxy = false
              */
             behindSecureProxy: boolean;
-        }
+        };
         /** Socket IO related settings. */
         socketIO: {
             /**
@@ -3662,7 +3662,7 @@ declare namespace GmeConfig {
              *   config.socketIO.serverOptions = see config
              */
             serverOptions: any;
-        }
+        };
 
         /** Storage related settings. */
         storage: {
@@ -3707,7 +3707,7 @@ declare namespace GmeConfig {
              * can be 'plainSHA1', 'rand160Bits' or 'ZSSHA'.
              *   config.storage.keyType = 'plainSha';
              */
-            keyType: "plainSHA1" | "rand160Bits" | "ZSSHA";
+            keyType: 'plainSHA1' | 'rand160Bits' | 'ZSSHA';
             /**
              * Since v2.6.2 patched objects on the server are being 
              * checked for consistency w.r.t. the provided hash 
@@ -3741,7 +3741,7 @@ declare namespace GmeConfig {
              * can be 'mongo', 'redis' or 'memory'.
              *   config.storage.database.type = 'mongo';
              */
-                type: "mongo" | "redis" | "memory";
+                type: 'mongo' | 'redis' | 'memory';
             }
             /**
              * Options passed to database client 
@@ -3749,7 +3749,7 @@ declare namespace GmeConfig {
              *   config.storage.database.options = '{}';
              */
             options: string;
-        }
+        };
 
 
         /** Visualization related settings. */
@@ -3809,7 +3809,7 @@ declare namespace GmeConfig {
                  */
                 basePaths: string[];
             }
-        }
+        };
 
         webhooks: {
             /**
@@ -3825,8 +3825,8 @@ declare namespace GmeConfig {
              * (It is also possible to run the redis manager separately from the webgme server.)
              *   config.webhooks.manager = 'memory';
              */
-            manager: "memory" | "redis";
-        }
+            manager: 'memory' | 'redis';
+        };
         /**
          *  Serialize the configuration.
          * @returns {*} 
@@ -3889,7 +3889,7 @@ declare namespace GmeStorage {
     export interface CommitResult {
         /** The commitHash for the commit. */
         hash: CommitHash;
-        status: "SYNCED" | "FORKED" | "CANCELED" | undefined;
+        status: 'SYNCED' | 'FORKED' | 'CANCELED' | undefined;
     }
 
 }
@@ -3899,7 +3899,7 @@ declare namespace GmeStorage {
 Things in this module are deprecated.
 This was a serialization supported in version 1.
 */
-declare module "webgme/v1" {
+declare module 'webgme/v1' {
     export type GUID = string;
 
     export interface JsonContainment {
