@@ -5,6 +5,7 @@
     "postinstall": "npm run build",
     "lint": "node ./node_modules/.bin/eslint ./",
     "build": "tsc",
+    "watch-lib": "tsc --watch",
     "test": "node ./node_modules/mocha/bin/mocha --recursive test"
   },
   "version": "1.0.0",
@@ -20,7 +21,6 @@
     "eslint": "^8.23.0",
     "mocha": "^5.2.0",
     "typescript": "^4.8.2",
-    "vite": "^3.1.0",
     "webgme": "^2.23.0"
   },
   "dependencies": {

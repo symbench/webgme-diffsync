@@ -1,9 +1,10 @@
 /* eslint-env node, mocha */
 
-describe('types', function () {
+describe('WebGMEDiffSyncer', function () {
     const testFixture = require('../globals');
     const Core = testFixture.requirejs('common/core/coreQ');
     const Importer = testFixture.requirejs('webgme-json-importer/JSONImporter');
+    const diff = testFixture.requirejs('webgme-json-importer/changeset');
     const assert = require('assert');
     const gmeConfig = testFixture.getGmeConfig();
     const Q = testFixture.Q;
@@ -16,6 +17,8 @@ describe('types', function () {
         commitHash,
         core;
     const {GMENode} = testFixture.requirejs('WebGMEDiffSyncer/types');
+    const WebGMEDiffSyncer = testFixture.requirejs('WebGMEDiffSyncer/index');
+    console.log(WebGMEDiffSyncer);
 
     async function getNewRootNode(core) {
         const branchName = 'test' + counter++;
@@ -61,6 +64,25 @@ describe('types', function () {
         const shadow = await gmeNode.toShadow();
         assert(shadow.attributes.name === 'NewNode');
         assert(shadow.pointers.base === fcoGuid);
+    });
+
+    it('should correctly find the diffs', async () => {
+        const rootNode = await getNewRootNode(core);
+        const fco = await core.loadByPath(rootNode, '/1');
+        const newNode = await core.createNode({
+            parent: rootNode,
+            base: fco,
+        });
+        core.setAttribute(newNode, 'name', 'NewNode');
+        const importer = new Importer(core, rootNode);
+        const gmeNode = new GMENode(newNode, importer);
+        const shadow = await gmeNode.toShadow();
+        const wjiDiffSyncer = new WebGMEDiffSyncer(
+            shadow,
+            diff
+        );
+        core.setAttribute(newNode, 'name', 'ChangedName');
+        await wjiDiffSyncer.onUpdatesFromServer(gmeNode);
     });
 
     after(async function () {

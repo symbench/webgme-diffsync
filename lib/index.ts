@@ -1,6 +1,6 @@
-import {GMENode, CommonShadow, Transformable} from './types';
+import {CommonShadow, Transformable} from './types';
 
-interface Patches {
+interface Diffs {
     timestamp: number;
     patches: any[];
 }
@@ -11,12 +11,12 @@ enum Events {
 }
 
 class PatchesQueue {
-    internal: Patches[];
+    internal: Diffs[];
     constructor() {
         this.internal = [];
     }
 
-    enqueue(task: Patches) {
+    enqueue(task: Diffs) {
         this.internal.push(task);
     }
 
@@ -46,8 +46,8 @@ export class WebGMEDiffSyncer {
     serverQueue: PatchesQueue;
     diff: any;
 
-    constructor(gmeNode: GMENode, diff: any) {
-        this.commonShadow = gmeNode.toShadow();
+    constructor(commonShadow: CommonShadow, diff: any) {
+        this.commonShadow = commonShadow;
         this.diff = diff;
         this.clientQueue = new PatchesQueue();
         this.serverQueue = new PatchesQueue();
@@ -55,7 +55,7 @@ export class WebGMEDiffSyncer {
 
     onUpdatesFromClient(clientState: Transformable<CommonShadow>) {
         const newState = clientState.toShadow();
-        const patches = this.diff(this.commonShadow, newState) as Patches;
+        const patches = this._computePatches(newState) as Diffs;
         this.commonShadow = newState;
         if(!patches.patches.length) {
             this.serverQueue.clearPrevious(Date.now());
@@ -64,9 +64,9 @@ export class WebGMEDiffSyncer {
         }
     }
 
-    onUpdatesFromServer(serverState: Transformable<CommonShadow>) {
-        const newState = serverState.toShadow();
-        const patches = this.diff(this.commonShadow, newState) as Patches;
+    async onUpdatesFromServer(serverState: Transformable<CommonShadow>) {
+        const newState = await serverState.toShadow();
+        const patches = this._computePatches(newState) as Diffs;
         this.commonShadow = newState;
         if(!patches.patches.length) {
             this.clientQueue.clearPrevious(Date.now());
@@ -75,4 +75,11 @@ export class WebGMEDiffSyncer {
         }
     }
 
+    _computePatches(newState: CommonShadow): Diffs {
+        const diffs = this.diff(this.commonShadow, newState)
+        return {
+            timestamp: Date.now(),
+            patches: diffs
+        };
+    }
 }
