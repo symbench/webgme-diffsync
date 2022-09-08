@@ -1,0 +1,23 @@
+{
+  "name": "webgme-diffsync",
+  "scripts": {
+    "start": "node app.js",
+    "postinstall": "npm run build",
+    "build": "tsc"
+  },
+  "version": "1.0.0",
+  "peerDependencies": {
+    "webgme": "^2.23.0"
+  },
+  "devDependencies": {
+    "@tsconfig/recommended": "^1.0.1",
+    "@types/node": "^18.7.16",
+    "mocha": "^5.2.0",
+    "typescript": "^4.8.2",
+    "vite": "^3.1.0",
+    "webgme": "^2.23.0"
+  },
+  "dependencies": {
+    "webgme-json-importer": "^1.3.1"
+  }
+}
