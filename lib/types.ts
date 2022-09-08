@@ -26,7 +26,6 @@ export interface WJIJson extends CommonShadow{
 
 export class GMENode implements Transformable<WJIJson> {
     _node: Core.Node;
-    rootNode: Core.Node;
     importer: any;
     constructor(node: Core.Node, importer: any) {
         this._node = node;
