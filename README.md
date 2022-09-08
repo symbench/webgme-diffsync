@@ -1,2 +1,2 @@
 # webgme-diffsync
-Differential Synchronization for webgme-models
+Differential Synchronization for webgme models
