@@ -33,5 +33,5 @@ node_modules
 tmp/
 blob-local-storage/
 
-lib/build
+build
 test-tmp

@@ -1,4 +1,4 @@
-import {DiffFunction, Delta, Differ, GMEDiffSync, NodeChangeSet, StateTransformer, WJIImporterType, WJIJson} from "./DiffSyncLib";
+import {DiffFunction, Delta, Differ, GMEDiffSync, NodeChangeSet, StateTransformer, WJIImporterType, WJIJson} from './DiffSyncLib';
 
 class WJIDelta implements Delta {
     patches: any;
