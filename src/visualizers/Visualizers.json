@@ -1,1 +1,8 @@
-[]
+[
+  {
+    "id": "JSONEditor",
+    "title": "JSONEditor",
+    "panel": "panels/JSONEditor/JSONEditorPanel",
+    "DEBUG_ONLY": false
+  }
+]

@@ -1,4 +1,29 @@
 {
-  "components": {},
-  "dependencies": {}
+  "components": {
+    "visualizers": {
+      "JSONEditor": {
+        "src": "panels/JSONEditor/JSONEditorPanel",
+        "title": "JSONEditor",
+        "panel": "src/visualizers/panels/JSONEditor",
+        "secondary": false,
+        "widget": "src/visualizers/widgets/JSONEditor"
+      }
+    },
+    "plugins": {
+      "CreateCountries": {
+        "src": "src/plugins/CreateCountries",
+        "test": "test/plugins/CreateCountries"
+      }
+    },
+    "seeds": {
+      "project": {
+        "src": "src/seeds/project"
+      }
+    }
+  },
+  "dependencies": {
+    "visualizers": {},
+    "plugins": {},
+    "seeds": {}
+  }
 }

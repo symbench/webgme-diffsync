@@ -17,8 +17,7 @@ describe('WebGMEDiffSyncer', function () {
         commitHash,
         core;
     const {GMENode} = testFixture.requirejs('WebGMEDiffSyncer/types');
-    const WebGMEDiffSyncer = testFixture.requirejs('WebGMEDiffSyncer/index');
-    console.log(WebGMEDiffSyncer);
+    const {WebGMEDiffSyncer} = testFixture.requirejs('WebGMEDiffSyncer/index');
 
     async function getNewRootNode(core) {
         const branchName = 'test' + counter++;
@@ -74,15 +73,15 @@ describe('WebGMEDiffSyncer', function () {
             base: fco,
         });
         core.setAttribute(newNode, 'name', 'NewNode');
-        const importer = new Importer(core, rootNode);
-        const gmeNode = new GMENode(newNode, importer);
-        const shadow = await gmeNode.toShadow();
         const wjiDiffSyncer = new WebGMEDiffSyncer(
-            shadow,
-            diff
+            newNode,
+            rootNode,
+            core,
+            Importer
         );
+        await wjiDiffSyncer.populateCommonShadow();
         core.setAttribute(newNode, 'name', 'ChangedName');
-        await wjiDiffSyncer.onUpdatesFromServer(gmeNode);
+        await wjiDiffSyncer.onUpdatesFromServer();
     });
 
     after(async function () {
