@@ -4,14 +4,14 @@
     "noImplicitAny": true,
     "removeComments": true,
     "preserveConstEnums": true,
-    "outDir": "./lib/build/",
+    "outDir": "src/common/lib/build/",
     "sourceMap": true,
     "moduleResolution": "node",
     "target": "ES6",
     "strict": true,
     "esModuleInterop": true
   },
-  "include": ["lib/**/*"],
+  "include": ["src/common/lib/**/*"],
   "exclude": ["node_modules", "**/*.spec.ts"],
   "watchOptions": {
     "watchFile": "useFsEvents",

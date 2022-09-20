@@ -1,6 +1,6 @@
 import {DiffFunction, Delta, Differ, GMEDiffSync, NodeChangeSet, StateTransformer, WJIImporterType, WJIJson} from './DiffSyncLib';
 
-class WJIDelta implements Delta {
+export class WJIDelta implements Delta {
     patches: any;
     timeStamp: number;
 
@@ -9,13 +9,13 @@ class WJIDelta implements Delta {
         this.patches = patches;
     }
 
-    static fromNodeChangeSet(changeSet: NodeChangeSet) {
-        return new WJIDelta(Date.now(), changeSet);
+    static fromNodeChangeSet(changeSets: NodeChangeSet[]) {
+        return new WJIDelta(Date.now(), changeSets);
     }
 }
 
 
-class NodeToWJITransformer implements StateTransformer<Core.Node, WJIJson> {
+export class NodeToWJITransformer implements StateTransformer<Core.Node, WJIJson> {
     importer: WJIImporterType;
 
     constructor(importer: WJIImporterType) {
@@ -32,7 +32,7 @@ class NodeToWJITransformer implements StateTransformer<Core.Node, WJIJson> {
     }
 }
 
-class WJIToWJITransformer implements StateTransformer<WJIJson, WJIJson> {
+export class WJIToWJITransformer implements StateTransformer<WJIJson, WJIJson> {
     apply(state: WJIJson, patch: WJIDelta): void | Promise<void> {
         // ToDo: Implement this logic
     }
@@ -42,7 +42,7 @@ class WJIToWJITransformer implements StateTransformer<WJIJson, WJIJson> {
     }
 }
 
-class WJIDiff implements Differ<WJIJson> {
+export class WJIDiff implements Differ<WJIJson> {
     diffFunc: DiffFunction;
 
     constructor(diff:  DiffFunction) {
@@ -50,15 +50,16 @@ class WJIDiff implements Differ<WJIJson> {
     }
 
     diff(state: WJIJson, newState: WJIJson): WJIDelta {
-        return this.diffFunc(state, newState);
+        const changeSets = this.diffFunc(state, newState);
+        return WJIDelta.fromNodeChangeSet(changeSets);
     }
-
 }
 
-class WJIDiffSync implements GMEDiffSync<Core.Node, WJIJson, WJIJson> {
+export class WJIDiffSync implements GMEDiffSync<Core.Node, WJIJson, WJIJson> {
     shadow: WJIJson;
     serverTransform: NodeToWJITransformer;
     clientTransform: WJIToWJITransformer;
+    importer: WJIImporterType;
     differ: WJIDiff;
     serverState: Core.Node;
     clientState: WJIJson;
@@ -70,14 +71,13 @@ class WJIDiffSync implements GMEDiffSync<Core.Node, WJIJson, WJIJson> {
         clientState: WJIJson,
         importer: WJIImporterType,
         diff: DiffFunction,
-        clientTransform: NodeToWJITransformer,
-        serverTransform: WJIToWJITransformer
     ) {
         this.serverState = serverState;
         this.shadow = shadow;
+        this.importer = importer;
         this.clientState = clientState;
-        this.serverTransform = clientTransform;
-        this.clientTransform = serverTransform;
+        this.serverTransform = new NodeToWJITransformer(this.importer);
+        this.clientTransform = new WJIToWJITransformer();
         this.differ = new WJIDiff(diff);
     }
 
@@ -92,5 +92,6 @@ class WJIDiffSync implements GMEDiffSync<Core.Node, WJIJson, WJIJson> {
         const diff = this.differ.diff(this.shadow, serverState);
         this.shadow = serverState;
         this.clientTransform.apply(this.clientState, diff);
+        this.clientState = this.shadow;
     }
 }

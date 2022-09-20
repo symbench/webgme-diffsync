@@ -7,6 +7,13 @@
         "panel": "src/visualizers/panels/JSONEditor",
         "secondary": false,
         "widget": "src/visualizers/widgets/JSONEditor"
+      },
+      "DemoDiffSync": {
+        "src": "panels/DemoDiffSync/DemoDiffSyncPanel",
+        "title": "DemoDiffSync",
+        "panel": "src/visualizers/panels/DemoDiffSync",
+        "secondary": false,
+        "widget": "src/visualizers/widgets/DemoDiffSync"
       }
     },
     "plugins": {

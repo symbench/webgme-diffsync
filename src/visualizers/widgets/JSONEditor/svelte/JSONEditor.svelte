@@ -13,7 +13,8 @@
         }
     },
     readOnly = false,
-    onChange = null;
+    onChange = null,
+    title='JSONEditor';
 
     export function setReadOnly() {
         readOnly = true;
@@ -25,5 +26,6 @@
 </script>
 
 <div>
+    <h3>{title}</h3>
     <JSONEditor bind:content bind:readOnly bind:onChange/>
 </div>

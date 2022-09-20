@@ -1,4 +1,4 @@
 build
 node_modules
-lib/types/webgme.ts
+src/common/lib/types/webgme.ts
 config/config.webgme.js

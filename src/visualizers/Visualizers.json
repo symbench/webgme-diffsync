@@ -4,5 +4,11 @@
     "title": "JSONEditor",
     "panel": "panels/JSONEditor/JSONEditorPanel",
     "DEBUG_ONLY": false
+  },
+  {
+    "id": "DemoDiffSync",
+    "title": "DemoDiffSync",
+    "panel": "panels/DemoDiffSync/DemoDiffSyncPanel",
+    "DEBUG_ONLY": false
   }
 ]

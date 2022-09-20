@@ -11,10 +11,10 @@ define([
 
     const WIDGET_CLASS = 'json-editor';
     class JSONEditorWidget {
-        constructor(logger, container) {
+        constructor(logger, container, options={}) {
             this._logger = logger.fork('Widget');
             this.$el = container;
-            this.$el.addClass(WIDGET_CLASS);
+            this.$el.addClass(options.widgetClass || WIDGET_CLASS);
             this.editor = new JSONEditor({
                 target: this.$el[0],
                 props: {
@@ -32,6 +32,10 @@ define([
 
         setOnChange(onChange) {
             this.editor.$set({onChange});
+        }
+
+        setTitle(title) {
+            this.editor.$set({title});
         }
 
         onWidgetContainerResize (/*width, height*/) {

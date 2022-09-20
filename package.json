@@ -4,8 +4,10 @@
     "start": "node app.js",
     "postinstall": "npm run build",
     "lint": "node ./node_modules/.bin/eslint ./",
-    "build": "tsc",
-    "watch-lib": "tsc --watch",
+    "build": "npm run build:lib && npm run build:svelte",
+    "build:lib": "tsc",
+    "build:svelte": "vite build",
+    "watch:lib": "tsc --watch",
     "test": "node ./node_modules/mocha/bin/mocha --recursive test"
   },
   "version": "1.0.0",

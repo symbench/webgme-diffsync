@@ -1,5 +1,18 @@
-export type DiffFunction = (input: WJIJson, newState: WJIJson) => Delta;
-export type NodeChangeSet = any;
+export type DiffFunction = (input: WJIJson, newState: WJIJson) => NodeChangeSet[];
+
+enum NodeChangeSetType {
+    put='put',
+    del='del'
+}
+
+export interface NodeChangeSet {
+    parentPath: string,
+    nodeId: string,
+    type: NodeChangeSetType,
+    key: string[],
+    value: any
+}
+
 export type WJIImporterType = any;
 
 export interface Delta {
@@ -13,6 +26,7 @@ export interface StateTransformer<T1, T2> {
 }
 
 export interface Differ<T2> {
+    diffFunc: DiffFunction;
     diff(state: T2, newState: T2) : Delta
 }
 
