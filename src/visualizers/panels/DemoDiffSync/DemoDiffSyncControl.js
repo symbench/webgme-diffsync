@@ -26,20 +26,19 @@ define([
 
     'use strict';
     const WJIDiffSync = DiffSyncUtils.default;
-    const {NodeDiffFactory} = Utils;
+    const {NodeDiffFactory, SaveTask} = Utils;
     class DemoDiffSyncControl {
         constructor(options) {
             this._logger = options.logger.fork('Control');
 
             this._client = options.client;
             this.synchronizer = null;
-            this.numCalls = 0;
             // Initialize core collections and variables
             this._initializeWidgets(options.widgets);
 
-            this.pending = false;
             this._currentNodeId = null;
             this._currentNodeParentId = undefined;
+            this.pendingSave = null;
 
             this._initWidgetEventHandlers();
 
@@ -64,29 +63,31 @@ define([
 
         _initWidgetEventHandlers = function () {
             const onChange = async (updated, previous, /*error, patch*/) => {
-                if(!_.isEmpty(previous.json)) {
-                    if(this.pending) return;
-                    this.pending = true;
-                    await this.synchronizer.onUpdatesFromClient(updated.json);
-                    const {core, rootNode, project} = await this.getCoreInstance();
-                    const {rootHash, objects} = core.persist(rootNode);
-                    const activeNode = await core.loadByPath(rootNode, this._currentNodeId);
-                    const nodeName = core.getAttribute(activeNode, 'name');
-                    const branchName = this._client.getActiveBranchName();
-                    const parentCommit = this._client.getActiveCommitHash();
-                    await project.makeCommit(
-                        branchName,
-                        [parentCommit],
-                        rootHash,
-                        objects,
-                        `Updated ${nodeName}`,
+                if (!_.isEmpty(previous.json) && this.synchronizer) {
+                    const {project, rootNode, core} = await this.getCoreInstance();
+                    if (this.pendingSave) {
+                        this.pendingSave.cancel();
+                    }
+                    const saveTask = new SaveTask(
+                        this.synchronizer,
+                        project,
+                        this._client.getActiveBranchName(),
+                        this._client.getActiveCommitHash()
                     );
+
+                    this.pendingSave = saveTask;
+                    await this.pendingSave.save(this._currentNodeId, updated.json);
+                    if (this.pendingSave === saveTask) {
+                        this.pendingSave = null;
+                    }
+                    const importer = new JSONImporter(core, rootNode);
+                    const node = await core.loadByPath(rootNode, this._currentNodeId);
+                    this.setWidgetsState(['server', 'shadow'], node, importer);
+
                 }
-                await this.setWidgetsState();
-                this.pending = false;
             };
 
-            this.clientStateWidget.setOnChange(_.debounce(onChange.bind(this), 1000));
+            this.clientStateWidget.setOnChange(_.debounce(onChange.bind(this), 750));
         };
 
         async getCoreInstance() {
@@ -94,15 +95,12 @@ define([
         }
 
         async setStateFromNode(nodeId) {
-            if(this.pending) return;
-            this.pending = true;
             const {core, rootNode} = await this.getCoreInstance();
             const importer = new JSONImporter(core, rootNode);
             const node = await core.loadByPath(rootNode, nodeId);
             const nodeJSON = await importer.toJSON(node);
             const parent = core.getParent(node);
             const diffFunction = NodeDiffFactory(diff, core.getPath(parent), JSONImporter.NodeChangeSet);
-
             if(!this.synchronizer) {
                 this.synchronizer = new WJIDiffSync(
                     node,
@@ -111,30 +109,39 @@ define([
                     importer,
                     diffFunction
                 );
+                this.setWidgetsState(null, node, importer);
             } else {
                 await this.synchronizer.onUpdatesFromServer(node);
+                this.setWidgetsState(null, node, importer);
             }
-            await this.setWidgetsState();
-            this.pending = false;
+
         }
 
-        async setWidgetsState() {
+        setWidgetsState(widgets=null, node, importer) {
             if(!this.synchronizer) return;
-            const importer = this.synchronizer.importer;
-            this.serverStateWidget.setState(
-                {json: await importer.toJSON(this.synchronizer.serverState)},
-                true
-            );
+            if(!widgets) {
+                widgets = ['client', 'shadow', 'server'];
+            }
 
-            this.clientStateWidget.setState(
-                {json: this.synchronizer.clientState},
-                false
-            );
+            if (widgets.includes('server')) {
+                importer.toJSON(node).then(json => {
+                    this.serverStateWidget.setState({json}, true);
+                });
+            }
 
-            this.commonShadowWidget.setState(
-                {json: this.synchronizer.shadow},
-                true
-            );
+            if (widgets.includes('client')) {
+                this.clientStateWidget.setState(
+                    {json: this.synchronizer.clientState},
+                    false
+                );
+            }
+
+            if(widgets.includes('shadow')) {
+                this.commonShadowWidget.setState(
+                    {json: this.synchronizer.shadow},
+                    true
+                );
+            }
         }
 
         selectedObjectChanged(nodeId) {

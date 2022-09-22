@@ -21,7 +21,7 @@
     }
 
     export function setContent(contentJSON) {
-        content = JSON.parse(JSON.stringify(contentJSON));
+        content = contentJSON;
     }
 </script>
 

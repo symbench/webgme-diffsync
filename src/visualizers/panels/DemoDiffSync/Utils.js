@@ -97,5 +97,37 @@ define([], function () {
         return diffFunc;
     }
 
-    return {NodeDiffFactory};
+    class SaveTask {
+        constructor(synchronizer, project, branchName, parentCommit) {
+            this.synchronizer = synchronizer;
+            this.project = project;
+            this.branchName = branchName;
+            this.parentCommit = parentCommit;
+            this.canceled = false;
+        }
+
+        async save(currentNodeId, json) {
+            const {core, rootNode} = this.synchronizer.importer;
+            const activeNode = await core.loadByPath(rootNode, currentNodeId);
+            if(this.canceled) return;
+            await this.synchronizer.onUpdatesFromClient(json);
+            if (this.canceled) return;
+            const {rootHash, objects} = core.persist(rootNode);
+            const nodeName = core.getAttribute(activeNode, 'name');
+
+            await this.project.makeCommit(
+                this.branchName,
+                [this.parentCommit],
+                rootHash,
+                objects,
+                `Updated WJI for ${nodeName}`,
+            );
+        }
+
+        cancel() {
+            this.canceled = true;
+        }
+    }
+
+    return {NodeDiffFactory, SaveTask};
 });

@@ -1,4 +1,5 @@
 import {DiffFunction, Delta, Differ, GMEDiffSync, NodeChangeSet, StateTransformer, WJIImporterType, WJIJson} from './DiffSyncLib';
+import {deepCopy} from './Utils';
 
 export class WJIDelta implements Delta {
     patches: any;
@@ -14,6 +15,54 @@ export class WJIDelta implements Delta {
     }
 }
 
+type ServerUpdateType = {updater: NodeToWJITransformer, delta: WJIDelta, state: Core.Node};
+type ClientUpdateType = {updater: WJIToWJITransformer, delta: WJIDelta, state: WJIJson};
+
+export class UpdateQueue {
+    internalQueue: (ServerUpdateType | ClientUpdateType)[] ;
+    doing: boolean;
+
+    constructor() {
+        this.internalQueue = [];
+        this.doing = false;
+    }
+
+    enqueue(task: ServerUpdateType | ClientUpdateType) {
+        this.internalQueue.push(task);
+    }
+
+    dequeue() {
+        return this.internalQueue.shift();
+    }
+
+    clear() {
+        this.internalQueue = [];
+    }
+
+    isEmpty() {
+        return this.internalQueue.length === 0;
+    }
+
+    request(task: ServerUpdateType | ClientUpdateType) {
+        if(this.doing) {
+            this.enqueue(task);
+        } else {
+            this.do(task);
+        }
+    }
+
+    async do(task: ServerUpdateType | ClientUpdateType) {
+        this.doing = true;
+        // @ts-ignore
+        await task.updater.apply(task.state, task.delta);
+        const next = this.dequeue();
+        if(next) {
+            this.do(next);
+        }
+        this.doing = false;
+    }
+}
+
 
 export class NodeToWJITransformer implements StateTransformer<Core.Node, WJIJson> {
     importer: WJIImporterType;
@@ -22,8 +71,8 @@ export class NodeToWJITransformer implements StateTransformer<Core.Node, WJIJson
         this.importer = importer;
     }
 
-    async apply(node: Core.Node, patch: WJIDelta): Promise<void> {
-        const wjiDiffs = patch.patches;
+    async apply(node: Core.Node, edits: WJIDelta): Promise<void> {
+        const wjiDiffs = edits.patches;
         await this.importer.patch(node, wjiDiffs);
     }
 
@@ -33,8 +82,24 @@ export class NodeToWJITransformer implements StateTransformer<Core.Node, WJIJson
 }
 
 export class WJIToWJITransformer implements StateTransformer<WJIJson, WJIJson> {
-    apply(state: WJIJson, patch: WJIDelta): void | Promise<void> {
-        // ToDo: Implement this logic
+    async apply(state: WJIJson, edits: WJIDelta): Promise<void> {
+        const wjiDiffs = edits.patches;
+        // @ts-ignore
+        wjiDiffs.forEach(diff => {
+            console.log(diff);
+            if(diff.type === 'put') {
+                const [key, toChange] = diff.key;
+                if(key === 'attributes') {
+                    this.putAttributes(state, toChange, diff.value);
+                }
+            }
+        });
+    }
+
+    putAttributes(state:WJIJson, toChange: string, value: any) {
+        if(state.attributes) {
+            state.attributes[toChange] = value;
+        }
     }
 
     convert(input: WJIJson): WJIJson {
@@ -50,7 +115,7 @@ export class WJIDiff implements Differ<WJIJson> {
     }
 
     diff(state: WJIJson, newState: WJIJson): WJIDelta {
-        const changeSets = this.diffFunc(state, newState);
+        const changeSets = this.diffFunc(deepCopy(state), deepCopy(newState));
         return WJIDelta.fromNodeChangeSet(changeSets);
     }
 }
@@ -63,6 +128,7 @@ export class WJIDiffSync implements GMEDiffSync<Core.Node, WJIJson, WJIJson> {
     differ: WJIDiff;
     serverState: Core.Node;
     clientState: WJIJson;
+    updateQueue: UpdateQueue = new UpdateQueue();
 
 
     constructor(
@@ -82,16 +148,24 @@ export class WJIDiffSync implements GMEDiffSync<Core.Node, WJIJson, WJIJson> {
     }
 
     async onUpdatesFromClient(clientState: WJIJson): Promise<void> {
+        console.log('onUpdatesFromClient');
         const diff = this.differ.diff(this.shadow, clientState);
         this.shadow = clientState;
-        await this.serverTransform.apply(this.serverState, diff);
+        this.updateQueue.request({
+            updater: this.serverTransform,
+            delta: diff,
+            state: this.serverState
+        });
     }
 
     async onUpdatesFromServer(node: Core.Node): Promise<void> {
+        console.log('onUpdatesFromServer');
         const serverState = await this.serverTransform.convert(node);
+        console.log(serverState.attributes, '>>>');
         const diff = this.differ.diff(this.shadow, serverState);
         this.shadow = serverState;
-        this.clientTransform.apply(this.clientState, diff);
-        this.clientState = this.shadow;
+        this.updateQueue.request({
+            updater: this.clientTransform, delta: diff, state: this.clientState
+        });
     }
 }
