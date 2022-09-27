@@ -40,6 +40,10 @@ export class PatchContext {
         return !this.donotPatch.has(diff.nodeId);
     }
 
+    isOfInterest(diff: NodeChangeSet) {
+        return diff.type === NodeChangeSetType.delete && diff.key[0] === 'children';
+    }
+
     blackList(diff: NodeChangeSet) {
         return this.donotPatch.add(diff.nodeId);
     }
@@ -304,7 +308,7 @@ export class WJIDiffSync implements GMEDiffSync<Core.Node, WJIJson, WJIJson> {
         const diff = this.differ.diff(this.shadow, clientStateSnapShot);
         if(diff.patches.length) {
             diff.patches
-                .filter(patch => patch.type === NodeChangeSetType.delete && patch.key[0] === 'children')
+                .filter(patch => this.serverContext.isOfInterest(patch))
                 .forEach(patch => this.serverContext.blackList(patch));
         } else {
             this.clientContext.clear();
@@ -324,7 +328,7 @@ export class WJIDiffSync implements GMEDiffSync<Core.Node, WJIJson, WJIJson> {
         const diff = this.differ.diff(this.shadow, serverStateSnapshot);
         if(diff.patches.length) {
             diff.patches
-                .filter(patch => patch.type === NodeChangeSetType.delete && patch.key[0] === 'children')
+                .filter(patch => this.serverContext.isOfInterest(patch))
                 .forEach(patch => this.serverContext.blackList(patch));
         } else {
             this.serverContext.clear();
