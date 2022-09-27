@@ -1,15 +1,17 @@
 export type DiffFunction = (input: WJIJson, newState: WJIJson) => NodeChangeSet[];
 
-enum NodeChangeSetType {
+export enum NodeChangeSetType {
     put='put',
-    del='del'
+    delete='del'
 }
+
+type ChangeKeyType = [keyof WJIJson, ...Array<any>];
 
 export interface NodeChangeSet {
     parentPath: string,
     nodeId: string,
     type: NodeChangeSetType,
-    key: string[],
+    key: ChangeKeyType,
     value: any
 }
 
@@ -22,7 +24,7 @@ export interface Delta {
 
 export interface StateTransformer<T1, T2> {
     convert(input: T1) : T2 | Promise<T2>;
-    apply(state: T1, patch: Delta) : void | Promise<void>;
+    apply(state: T1, patch: Delta, context: {canPatch: (a: NodeChangeSet) => boolean}) : void | Promise<void>;
 }
 
 export interface Differ<T2> {
@@ -38,7 +40,7 @@ export interface WJIJson {
     attribute_meta?: { [key: string]: any };
     pointers?: { [key: string]: any };
     pointer_meta?: { [key: string]: any };
-    mixins?: { [key: string]: any }[];
+    mixins?: string[];
     registry?: { [key: string]: any };
     sets?: { [key: string]: any };
     member_attributes?: { [key: string]: any };

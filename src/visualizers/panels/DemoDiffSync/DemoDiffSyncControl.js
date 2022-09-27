@@ -11,7 +11,7 @@ define([
     'webgme-diffsync/WJIDiffSync',
     'js/Utils/GMEConcepts',
     'js/NodePropertyNames',
-    './Utils',
+    'webgme-diffsync/DemoDiffSyncUtils',
     'underscore'
 ], function (
     CONSTANTS,
@@ -82,7 +82,7 @@ define([
                     }
                     const importer = new JSONImporter(core, rootNode);
                     const node = await core.loadByPath(rootNode, this._currentNodeId);
-                    this.setWidgetsState(['server', 'shadow'], node, importer);
+                    this.setWidgetsState(['server', 'shadow', 'client'], node, importer);
 
                 }
             };
@@ -100,8 +100,8 @@ define([
             const node = await core.loadByPath(rootNode, nodeId);
             const nodeJSON = await importer.toJSON(node);
             const parent = core.getParent(node);
-            const diffFunction = NodeDiffFactory(diff, core.getPath(parent), JSONImporter.NodeChangeSet);
             if(!this.synchronizer) {
+                const diffFunction = NodeDiffFactory(diff, core.getPath(parent), JSONImporter.NodeChangeSet);
                 this.synchronizer = new WJIDiffSync(
                     node,
                     nodeJSON,
@@ -151,6 +151,10 @@ define([
             if (this._territoryId) {
                 this._client.removeUI(this._territoryId);
                 this._territoryId = null;
+            }
+
+            if (nodeId !== this._currentNodeId) {
+                this.synchronizer = null;
             }
 
             this._currentNodeId = nodeId;

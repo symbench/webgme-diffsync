@@ -56,7 +56,7 @@ define([], function () {
                 }
 
                 if (existingChild) {
-                    return diffFunc(child, existingChild, newState.path);
+                    return diffFunc(existingChild, child, newState.path);
                 } else {
                     return new NodeChangeSet(
                         newState.path,
@@ -80,13 +80,12 @@ define([], function () {
             }
             if(newState.children && currentChildren.length) {
                 const deletions = currentChildren.map(child =>{
-                    const  childPath = child.path;
                     return new NodeChangeSet(
                         newState.path,
-                        childPath,
+                        newState.id,
                         'del',
                         ['children'],
-                        childPath
+                        child.id
                     );
                 });
                 diffs.push(...deletions);
