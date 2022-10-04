@@ -4,6 +4,7 @@ import NodeState from 'webgme-json-importer/lib/common/JSONImporter/NodeState';
 import {ChangeType} from 'changeset';
 import {NodeChangeSet} from 'webgme-json-importer/lib/common/JSONImporter/NodeChangeSet';
 import type JSONImporter from 'webgme-json-importer/lib/common/JSONImporter';
+import {deepCopy} from "./Utils";
 
 class StateCache {
     cache: {[key: string]: Partial<NodeState>};
@@ -40,6 +41,8 @@ class StateCache {
 }
 
 export function diffNodeStates(prev: Partial<NodeState>, new_: Partial<NodeState>, parentPath: string | undefined): NodeChangeSet[] {
+    prev = deepCopy(prev);
+    new_ = deepCopy(new_);
     const diffs = [];
     const currentChildren = prev.children || [];
     const children = new_.children || [];

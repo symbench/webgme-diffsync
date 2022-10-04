@@ -1,27 +1,28 @@
 export type Diff<T> = T | any;
-export type DiffFunction<T2> = (input: T2, newState: T2) => Diff[];
 
 export interface Delta<T> {
     timeStamp: number;
     patches: Diff<T>;
 }
 
-export interface StateTransformer<T1, T2> {
-    shadow: T2;
-    convert(input: T1) : T2 | Promise<T2>;
-    apply(state: T1, patch: Delta<T2>) : void | Promise<void>;
-}
 
-export interface Differ<T2> {
-    diffFunc: DiffFunction<T2>;
-    diff(state: T2, newState: T2): Delta<T2>;
+// In an atomic update operation following things should happen(Context clientText is VizState; serverText is GMENode
+// 1. Diff ClientText with Shadow (get patches)
+// 2. Apply patches to the GMENode
+// 3. Update Shadow with clientText
+// All these tasks are atomic but not blocking
+
+export interface UpdateTask<T2, T3> {
+    shadow: T2;
+    state: T2;
+    target: T3;
+    diff: () => Delta<T2>;
+    patch: (patches: Delta<T2>) => Promise<void>;
+    onComplete: (finalState: T2) => void;
 }
 
 export interface GMEDiffSync<T1, T2, T3> {
     shadow: T2;
-    serverTransform: StateTransformer<T1, T2>;
-    clientTransform: StateTransformer<T3, T2>;
-    differ: Differ<T2>;
-    onUpdatesFromClient(input: T3) : Promise<void>;
-    onUpdatesFromServer(input: T1): Promise<void>;
+    onUpdatesFromClient(input: T3, target: T1) : Promise<void>;
+    onUpdatesFromServer(input: T1, target: T3): Promise<void>;
 }
