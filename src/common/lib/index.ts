@@ -1,4 +1,4 @@
-import {WJIDiffSync, WJIToWJITransformer, NodeToWJITransformer, WJIDiff, WJIDelta} from './WJIDiffSync';
+import {WJIDiffSync, WJIToWJITransformer, NodeToWJITransformer, WJIDiff, WJIDelta} from '../../../WJIDiffSync.ts.back';
 import {deepCopy} from './Utils';
 
 export default WJIDiffSync;

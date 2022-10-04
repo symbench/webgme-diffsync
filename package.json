@@ -5,8 +5,8 @@
     "postinstall": "npm run build",
     "lint": "node ./node_modules/.bin/eslint ./",
     "build": "npm run build:lib && npm run build:svelte",
-    "build:lib": "tsc",
-    "build:svelte": "vite build",
+    "build:lib": "vite build -c vite.ts-config.js",
+    "build:svelte": "vite build -c vite.svelte-config.js",
     "watch:lib": "tsc --watch",
     "test": "node ./node_modules/mocha/bin/mocha --recursive test"
   },
@@ -21,6 +21,7 @@
     "@typescript-eslint/eslint-plugin": "^5.36.2",
     "@typescript-eslint/parser": "^5.36.2",
     "chai": "^4.3.6",
+    "changeset": "github:deepforge-dev/changeset",
     "eslint": "^8.23.0",
     "mocha": "^5.2.0",
     "svelte": "^3.50.1",
@@ -28,9 +29,8 @@
     "svelte-preprocess": "^4.10.7",
     "typescript": "^4.8.2",
     "vite": "^3.1.3",
-    "webgme": "^2.23.0"
-  },
-  "dependencies": {
-    "webgme-json-importer": "github:deepforge-dev/webgme-json-importer#36-webgme-diff-patch"
+    "vite-plugin-dts": "^1.6.4",
+    "webgme": "^2.23.0",
+    "webgme-json-importer": "github:deepforge-dev/webgme-json-importer"
   }
 }

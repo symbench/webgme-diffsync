@@ -1,52 +1,20 @@
-export type DiffFunction = (input: WJIJson, newState: WJIJson) => NodeChangeSet[];
+export type Diff<T> = T | any;
+export type DiffFunction<T2> = (input: T2, newState: T2) => Diff[];
 
-export enum NodeChangeSetType {
-    put='put',
-    delete='del'
-}
-
-type ChangeKeyType = [keyof WJIJson, ...Array<any>];
-
-export interface NodeChangeSet {
-    parentPath: string,
-    nodeId: string,
-    type: NodeChangeSetType,
-    key: ChangeKeyType,
-    value: any
-}
-
-export type WJIImporterType = any;
-
-export interface Delta {
+export interface Delta<T> {
     timeStamp: number;
-    patches: any;
+    patches: Diff<T>;
 }
 
 export interface StateTransformer<T1, T2> {
+    shadow: T2;
     convert(input: T1) : T2 | Promise<T2>;
-    apply(state: T1, patch: Delta, context: {canPatch: (a: NodeChangeSet) => boolean}) : void | Promise<void>;
+    apply(state: T1, patch: Delta<T2>) : void | Promise<void>;
 }
 
 export interface Differ<T2> {
-    diffFunc: DiffFunction;
-    diff(state: T2, newState: T2) : Delta
-}
-
-export interface WJIJson {
-    id: string;
-    path?: string;
-    guid: string;
-    attributes?: { [key: string]: any };
-    attribute_meta?: { [key: string]: any };
-    pointers?: { [key: string]: any };
-    pointer_meta?: { [key: string]: any };
-    mixins?: string[];
-    registry?: { [key: string]: any };
-    sets?: { [key: string]: any };
-    member_attributes?: { [key: string]: any };
-    member_registry?: { [key: string]: any };
-    children_meta?: { [key: string]: any };
-    children?: WJIJson[];
+    diffFunc: DiffFunction<T2>;
+    diff(state: T2, newState: T2): Delta<T2>;
 }
 
 export interface GMEDiffSync<T1, T2, T3> {

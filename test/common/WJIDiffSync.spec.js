@@ -4,7 +4,6 @@ describe('WebGMEDiffSyncer', function () {
     const testFixture = require('../globals');
     const Core = testFixture.requirejs('common/core/coreQ');
     const Importer = testFixture.requirejs('webgme-json-importer/JSONImporter');
-    const diff = testFixture.requirejs('webgme-json-importer/changeset');
     const diffSyncLib = testFixture.requirejs('webgme-diffsync/WJIDiffSync');
     const {NodeDiffFactory} = testFixture.requirejs('webgme-diffsync/DemoDiffSyncUtils');
     const WJIDiffSync = diffSyncLib.default;
@@ -59,7 +58,7 @@ describe('WebGMEDiffSyncer', function () {
         targetSubtree = await core.loadByPath(rootNode, '/t');
         const parent = core.getParent(targetSubtree);
         const parentPath = parent ? core.getPath(parent) : '';
-        diffFunc = NodeDiffFactory(diff, parentPath, Importer.NodeChangeSet);
+        diffFunc = NodeDiffFactory(parentPath);
     });
 
 

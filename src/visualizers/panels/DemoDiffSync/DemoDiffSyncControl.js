@@ -7,7 +7,6 @@
 define([
     'js/Constants',
     'webgme-json-importer/JSONImporter',
-    'webgme-json-importer/changeset',
     'webgme-diffsync/WJIDiffSync',
     'js/Utils/GMEConcepts',
     'js/NodePropertyNames',
@@ -16,7 +15,6 @@ define([
 ], function (
     CONSTANTS,
     JSONImporter,
-    diff,
     DiffSyncUtils,
     GMEConcepts,
     nodePropertyNames,
@@ -101,7 +99,7 @@ define([
             const nodeJSON = await importer.toJSON(node);
             const parent = core.getParent(node);
             if(!this.synchronizer) {
-                const diffFunction = NodeDiffFactory(diff, core.getPath(parent), JSONImporter.NodeChangeSet);
+                const diffFunction = NodeDiffFactory(core.getPath(parent));
                 this.synchronizer = new WJIDiffSync(
                     node,
                     nodeJSON,
