@@ -1,8 +1,9 @@
 import {gmeDiff} from 'webgme-json-importer/lib/common/JSONImporter/SortedChanges';
 import diff from 'changeset';
 import NodeState from 'webgme-json-importer/lib/common/JSONImporter/NodeState';
-import {NodeChangeSet, NodeChangeSetType} from 'webgme-json-importer/lib/common/JSONImporter/NodeChangeSet';
-import JSONImporter from "webgme-json-importer/lib/common/JSONImporter";
+import {ChangeType} from 'changeset';
+import {NodeChangeSet} from 'webgme-json-importer/lib/common/JSONImporter/NodeChangeSet';
+import type JSONImporter from 'webgme-json-importer/lib/common/JSONImporter';
 
 class StateCache {
     cache: {[key: string]: Partial<NodeState>};
@@ -58,7 +59,7 @@ export function diffNodeStates(prev: Partial<NodeState>, new_: Partial<NodeState
             return new NodeChangeSet(
                 new_.path || '',
                 child.id || '',
-                NodeChangeSetType.PUT,
+                ChangeType.PUT,
                 ['children'],
                 child
             );
@@ -80,7 +81,7 @@ export function diffNodeStates(prev: Partial<NodeState>, new_: Partial<NodeState
             return new NodeChangeSet(
                 new_.path as string,
                 new_.id as string,
-                NodeChangeSetType.DEL,
+                ChangeType.DEL,
                 ['children'],
                 child.id
             );
@@ -97,16 +98,14 @@ export function nodeStatePatch(state: NodeState, patches: NodeChangeSet[]) {
         const patchState = cache.get(patch.nodeId);
         const key = patch.key[0];
         switch (patch.type) {
-            case NodeChangeSetType.PUT:
+            case ChangeType.PUT:
                 key === 'children' ? state.children = [patch.value].flat(): diff.apply([patch], patchState, true);
                 break;
-            case NodeChangeSetType.DEL:
+            case ChangeType.DEL:
                 key === 'children'? state.children = [] : diff.apply([patch], patchState, true);
                 break;
         }
     });
-
-    return state;
 }
 
 export async function nodePatch(node: Core.Node, patches: NodeChangeSet[], importer: JSONImporter) {
