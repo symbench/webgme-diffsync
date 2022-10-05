@@ -4,9 +4,8 @@ describe('WebGMEDiffSyncer', function () {
     const testFixture = require('../globals');
     const Core = testFixture.requirejs('common/core/coreQ');
     const Importer = testFixture.requirejs('webgme-json-importer/JSONImporter');
-    const diffSyncLib = testFixture.requirejs('webgme-diffsync/WJIDiffSync');
-    const {NodeDiffFactory} = testFixture.requirejs('webgme-diffsync/DemoDiffSyncUtils');
-    const {WJIDiffSync, deepCopy} = diffSyncLib;
+    const WJIDiffSync = testFixture.requirejs('webgme-diffsync/WJIDiffSync');
+    const {deepCopy} = WJIDiffSync;
     const assert = require('assert');
     const gmeConfig = testFixture.getGmeConfig();
     const Q = testFixture.Q;
@@ -54,16 +53,13 @@ describe('WebGMEDiffSyncer', function () {
     beforeEach(async () => {
         rootNode = await getNewRootNode(core);
         targetSubtree = await core.loadByPath(rootNode, '/t');
-        const parent = core.getParent(targetSubtree);
-        const parentPath = parent ? core.getPath(parent) : '';
-        diffFunc = NodeDiffFactory(parentPath);
     });
 
 
     describe('client updates', function () {
-        let clientState, shadow, diffSync;
+        let clientState, shadow, diffSync, importer;
         beforeEach(async function () {
-            const importer = new Importer(core, rootNode);
+            importer = new Importer(core, rootNode);
             clientState = await importer.toJSON(targetSubtree);
             shadow = deepCopy(clientState);
             diffSync = new WJIDiffSync(
@@ -100,6 +96,33 @@ describe('WebGMEDiffSyncer', function () {
 
             assert(core.getAttribute(child2, 'name') === 'Changed Name', 'change not synchronized throughout subtree');
             assert(core.getAttribute(child0, 'name') === 'Changed Name', 'change not synchronized throughout subtree');
+        });
+
+        it('should apply multiple concurrent edits from different clients', async () => {
+            const diffSync2 = new WJIDiffSync(
+                importer,
+                deepCopy(diffSync.shadow)
+            );
+
+            const clientState2 = deepCopy(clientState);
+
+            clientState2.children[1].attributes.name = 'changed name';
+
+            clientState.children[0].attributes.name = 'Afrika';
+
+            diffSync2.onUpdatesFromClient(clientState2, targetSubtree);
+            diffSync.onUpdatesFromClient(clientState, targetSubtree);
+
+            await delay(100);
+
+            diffSync.onUpdatesFromServer(targetSubtree, clientState);
+            diffSync2.onUpdatesFromServer(targetSubtree, clientState2);
+
+            await delay(50);
+
+            assert(clientState.children[1].attributes.name === 'changed name', 'updates not synchronized on concurrent edits');
+            assert(clientState2.children[0].attributes.name === 'Afrika', 'updates not synchronized on concurrent edits');
+
         });
     });
 

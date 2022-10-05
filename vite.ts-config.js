@@ -6,11 +6,11 @@ export default defineConfig({
     build: {
         lib: {
             formats: ['umd'],
-            entry: resolve(__dirname, 'src', 'common', 'lib', 'index.ts'),
+            entry: resolve(__dirname, 'lib', 'common', 'index.ts'),
             fileName: 'WJIDiffSync',
             name: 'WJIDiffSync',
         },
-        outDir: 'src/common/lib/build',
+        outDir: 'src/common/build',
     },
     plugins: [dts()]
 });

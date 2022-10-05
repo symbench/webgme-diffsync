@@ -15,7 +15,7 @@ define([
 ], function (
     CONSTANTS,
     JSONImporter,
-    DiffSyncUtils,
+    WJIDiffSync,
     GMEConcepts,
     nodePropertyNames,
     Utils,
@@ -23,8 +23,7 @@ define([
 ) {
 
     'use strict';
-    const WJIDiffSync = DiffSyncUtils.default;
-    const {NodeDiffFactory, SaveTask} = Utils;
+    const {SaveTask} = Utils;
     class DemoDiffSyncControl {
         constructor(options) {
             this._logger = options.logger.fork('Control');
@@ -37,6 +36,7 @@ define([
             this._currentNodeId = null;
             this._currentNodeParentId = undefined;
             this.pendingSave = null;
+            this.clientState = null;
 
             this._initWidgetEventHandlers();
 
@@ -97,21 +97,18 @@ define([
             const importer = new JSONImporter(core, rootNode);
             const node = await core.loadByPath(rootNode, nodeId);
             const nodeJSON = await importer.toJSON(node);
-            const parent = core.getParent(node);
+
             if(!this.synchronizer) {
-                const diffFunction = NodeDiffFactory(core.getPath(parent));
                 this.synchronizer = new WJIDiffSync(
-                    node,
-                    nodeJSON,
-                    nodeJSON,
                     importer,
-                    diffFunction
+                    WJIDiffSync.deepCopy(nodeJSON)
                 );
-                this.setWidgetsState(null, node, importer);
+                this.clientState = WJIDiffSync.deepCopy(nodeJSON);
             } else {
-                await this.synchronizer.onUpdatesFromServer(node);
-                this.setWidgetsState(null, node, importer);
+                await this.synchronizer.onUpdatesFromServer(node, this.clientState);
             }
+
+            this.setWidgetsState(null, node, importer);
 
         }
 
@@ -129,7 +126,7 @@ define([
 
             if (widgets.includes('client')) {
                 this.clientStateWidget.setState(
-                    {json: this.synchronizer.clientState},
+                    {json: this.clientState},
                     false
                 );
             }

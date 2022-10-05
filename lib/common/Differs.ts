@@ -4,11 +4,12 @@ import NodeState from 'webgme-json-importer/lib/common/JSONImporter/NodeState';
 import {ChangeType} from 'changeset';
 import {NodeChangeSet} from 'webgme-json-importer/lib/common/JSONImporter/NodeChangeSet';
 import type JSONImporter from 'webgme-json-importer/lib/common/JSONImporter';
-import {deepCopy} from "./Utils";
+import {deepCopy} from './Utils';
 
 class StateCache {
     cache: {[key: string]: Partial<NodeState>};
     state: Partial<NodeState>;
+
     constructor(state: Partial<NodeState>) {
         this.cache = {};
         this.state = state;
@@ -22,9 +23,7 @@ class StateCache {
         if(nodeId == state.id) {
             this.record(nodeId, state);
         } else {
-            state.children?.forEach(child => {
-                return this.find(nodeId, child);
-            });
+            state.children?.forEach(child => this.find(nodeId, child));
         }
     }
 
@@ -102,7 +101,7 @@ export function nodeStatePatch(state: NodeState, patches: NodeChangeSet[]) {
         const key = patch.key[0];
         switch (patch.type) {
             case ChangeType.PUT:
-                key === 'children' ? state.children = [patch.value].flat(): diff.apply([patch], patchState, true);
+                key === 'children' ? state.children.push(patch.value): diff.apply([patch], patchState, true);
                 break;
             case ChangeType.DEL:
                 key === 'children'? state.children = [] : diff.apply([patch], patchState, true);

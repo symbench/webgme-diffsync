@@ -1,7 +1,7 @@
 export type Diff<T> = T | any;
 
 export interface Delta<T> {
-    timeStamp: number;
+    timeStamp: number | string;
     patches: Diff<T>;
 }
 
@@ -12,7 +12,7 @@ export interface Delta<T> {
 // 3. Update Shadow with clientText
 // All these tasks are atomic but not blocking
 
-export interface UpdateTask<T2, T3> {
+export interface DiffSyncTask<T2, T3> {
     shadow: T2;
     state: T2;
     target: T3;

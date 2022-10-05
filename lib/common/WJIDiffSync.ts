@@ -1,6 +1,6 @@
 import {
     Delta,
-    UpdateTask,
+    DiffSyncTask,
     GMEDiffSync
 } from './DiffSyncLib';
 import JSONImporter, {NodeChangeSet} from 'webgme-json-importer/lib/common/JSONImporter';
@@ -21,7 +21,7 @@ class NodeChangeSetPatch implements Delta<NodeState> {
     }
 }
 
-class GMENodeUpdate implements UpdateTask<NodeState, Core.Node> {
+class GMENodeUpdate implements DiffSyncTask<NodeState, Core.Node> {
     shadow: NodeState;
     state: NodeState;
     target: Core.Node;
@@ -47,7 +47,6 @@ class GMENodeUpdate implements UpdateTask<NodeState, Core.Node> {
 
     diff(): Delta<NodeState> {
         const diffs = diffNodeStates(this.shadow, this.state, this.parentPath);
-        console.log(diffs);
         return {
             timeStamp: Date.now(),
             patches: diffs
@@ -59,7 +58,7 @@ class GMENodeUpdate implements UpdateTask<NodeState, Core.Node> {
     }
 }
 
-class NodeStateUpdate implements UpdateTask<NodeState, NodeState> {
+class NodeStateUpdate implements DiffSyncTask<NodeState, NodeState> {
     shadow: NodeState;
     state: NodeState;
     target: NodeState;

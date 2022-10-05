@@ -4,20 +4,22 @@
     "noImplicitAny": true,
     "removeComments": true,
     "preserveConstEnums": true,
-    "outDir": "src/common/lib/build/",
+    "outDir": "lib/common/build/",
     "sourceMap": true,
     "moduleResolution": "node",
     "target": "ES6",
     "strict": true,
     "esModuleInterop": true
   },
-  "include": ["src/common/lib/**/*"],
+  "include": [
+    "lib/common/**/*"
+  ],
   "exclude": ["node_modules", "**/*.spec.ts"],
   "watchOptions": {
     "watchFile": "useFsEvents",
     "watchDirectory": "useFsEvents",
     "fallbackPolling": "dynamicPriority",
     "synchronousWatchDirectory": true,
-    "excludeDirectories": ["**/node_modules", "lib/build", "**/src", "**/test", "**/config"],
+    "excludeDirectories": ["**/node_modules", "lib/build", "**/src", "**/test", "**/config"]
   }
 }
