@@ -68,62 +68,101 @@ describe('WebGMEDiffSyncer', function () {
             );
         });
 
-        it('should diff and apply attribute changes from client', async () => {
-            assert(clientState.attributes.name === 'Continents');
-            clientState.attributes.name = 'Changed Name';
-            await diffSync.onUpdatesFromClient(clientState, targetSubtree);
-            await delay(10);
-            assert(core.getAttribute(targetSubtree, 'name') === 'Changed Name', 'name change not synchronized');
+        describe('attributes', function () {
+            it('should diff and apply attribute changes from client', async () => {
+                assert(clientState.attributes.name === 'Continents');
+                clientState.attributes.name = 'Changed Name';
+                await diffSync.onUpdatesFromClient(clientState, targetSubtree);
+                await delay(10);
+                assert(core.getAttribute(targetSubtree, 'name') === 'Changed Name', 'name change not synchronized');
+            });
+
+            it('should diff and apply multiple attribute changes throughout the subtree', async () => {
+
+                clientState.children[2].attributes.name = 'Changed Name';
+                clientState.children[2].attributes.shortName = 'CN';
+                await diffSync.onUpdatesFromClient(clientState, targetSubtree);
+
+                clientState.children[0].attributes.name = 'Changed Name';
+                clientState.children[0].attributes.shortName = 'CN';
+                await diffSync.onUpdatesFromClient(clientState, targetSubtree);
+
+                await delay(500);
+
+                const child2Path = clientState.children[2].path;
+                const child0Path = clientState.children[0].path;
+
+                const child0 = await core.loadByPath(rootNode, child0Path);
+                const child2 = await core.loadByPath(rootNode, child2Path);
+
+                assert(core.getAttribute(child2, 'name') === 'Changed Name', 'change not synchronized throughout subtree');
+                assert(core.getAttribute(child0, 'name') === 'Changed Name', 'change not synchronized throughout subtree');
+            });
+
+            it('should apply multiple concurrent edits from different clients', async () => {
+                const diffSync2 = new WJIDiffSync(
+                    importer,
+                    deepCopy(diffSync.shadow)
+                );
+
+                const clientState2 = deepCopy(clientState);
+
+                clientState2.children[1].attributes.name = 'changed name';
+
+                clientState.children[0].attributes.name = 'Afrika';
+
+                diffSync2.onUpdatesFromClient(clientState2, targetSubtree);
+                diffSync.onUpdatesFromClient(clientState, targetSubtree);
+
+                await delay(100);
+
+                diffSync.onUpdatesFromServer(targetSubtree, clientState);
+                diffSync2.onUpdatesFromServer(targetSubtree, clientState2);
+
+                await delay(50);
+
+                assert(clientState.children[1].attributes.name === 'changed name', 'updates not synchronized on concurrent edits');
+                assert(clientState2.children[0].attributes.name === 'Afrika', 'updates not synchronized on concurrent edits');
+
+            });
+
+            it('should not apply attribute changes of a deleted node', async () => {
+                const children = await core.loadChildren(targetSubtree);
+                clientState.children[0].name = 'changedName';
+                diffSync.onUpdatesFromClient(clientState, targetSubtree);
+                core.deleteNode(children[0]);
+
+                diffSync.onUpdatesFromServer(targetSubtree, clientState);
+                clientState.children[0].name = 'changedName2';
+
+                const currentLength = clientState.children.length;
+                diffSync.onUpdatesFromClient(clientState, targetSubtree);
+
+                await delay(1000);
+                assert(clientState.children.length === currentLength - 1, JSON.stringify({currentLength, prev: clientState.children.length}));
+            });
         });
 
-        it('should diff and apply multiple attribute changes throughout the subtree', async () => {
+        describe('pointers', function () {
+            it('should change the base pointer to FCO on change from client', async () => {
+                const fco = await core.loadByPath(rootNode, '/1');
+                clientState.children[0].pointers.base = core.getGuid(fco);
+                await diffSync.onUpdatesFromClient(clientState, targetSubtree);
 
-            clientState.children[2].attributes.name = 'Changed Name';
-            clientState.children[2].attributes.shortName = 'CN';
-            await diffSync.onUpdatesFromClient(clientState, targetSubtree);
+                await delay(100);
 
-            clientState.children[0].attributes.name = 'Changed Name';
-            clientState.children[0].attributes.shortName = 'CN';
-            await diffSync.onUpdatesFromClient(clientState, targetSubtree);
-
-            await delay(500);
-
-            const child2Path = clientState.children[2].path;
-            const child0Path = clientState.children[0].path;
-
-            const child0 = await core.loadByPath(rootNode, child0Path);
-            const child2 = await core.loadByPath(rootNode, child2Path);
-
-            assert(core.getAttribute(child2, 'name') === 'Changed Name', 'change not synchronized throughout subtree');
-            assert(core.getAttribute(child0, 'name') === 'Changed Name', 'change not synchronized throughout subtree');
+                const firstChild = await core.loadByPath(rootNode, clientState.children[0].path);
+                assert (core.getPointerPath(firstChild, 'base') === '/1');
+            });
         });
 
-        it('should apply multiple concurrent edits from different clients', async () => {
-            const diffSync2 = new WJIDiffSync(
-                importer,
-                deepCopy(diffSync.shadow)
-            );
-
-            const clientState2 = deepCopy(clientState);
-
-            clientState2.children[1].attributes.name = 'changed name';
-
-            clientState.children[0].attributes.name = 'Afrika';
-
-            diffSync2.onUpdatesFromClient(clientState2, targetSubtree);
-            diffSync.onUpdatesFromClient(clientState, targetSubtree);
-
-            await delay(100);
-
-            diffSync.onUpdatesFromServer(targetSubtree, clientState);
-            diffSync2.onUpdatesFromServer(targetSubtree, clientState2);
-
-            await delay(50);
-
-            assert(clientState.children[1].attributes.name === 'changed name', 'updates not synchronized on concurrent edits');
-            assert(clientState2.children[0].attributes.name === 'Afrika', 'updates not synchronized on concurrent edits');
+        describe('sets', function () {
 
         });
+
+        describe('children', function () {});
+
+
     });
 
     after(async function () {

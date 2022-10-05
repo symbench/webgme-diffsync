@@ -2,9 +2,9 @@
 /* eslint-env node, browser */
 
 define([
-    './build/WJIDiffSync.umd'
+    './build/WJIDiffSync.umd',
 ], function (
-    DiffSyncLib
+    DiffSyncLib,
 ) {
     const {default: WJIDiffSync, deepCopy} = DiffSyncLib;
 

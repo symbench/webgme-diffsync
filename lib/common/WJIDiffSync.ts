@@ -6,6 +6,7 @@ import {
 import JSONImporter, {NodeChangeSet} from 'webgme-json-importer/lib/common/JSONImporter';
 import NodeState from 'webgme-json-importer/lib/common/JSONImporter/NodeState';
 import {diffNodeStates, nodePatch, nodeStatePatch} from './Differs';
+import {deepCopy} from "./Utils";
 
 class NodeChangeSetPatch implements Delta<NodeState> {
     patches: NodeChangeSet[];
@@ -128,6 +129,7 @@ export class UpdateQueue {
     async do(task: UpdateTaskType) {
         this.doing = true;
         const diffs = await task.diff();
+
         await task.patch(diffs);
         const next = this.dequeue();
         if (next) {
@@ -141,20 +143,24 @@ export class UpdateQueue {
 export class WJIDiffSync implements GMEDiffSync<Core.Node, NodeState, NodeState> {
     shadow: NodeState;
     importer: JSONImporter;
+    parentPath: GmeCommon.Path | undefined;
     updateQueue = new UpdateQueue();
 
-    constructor(importer: JSONImporter, shadow: NodeState) {
+    constructor(importer: JSONImporter, shadow: NodeState, parentPath='') {
         this.importer = importer;
         this.shadow = shadow;
+        this.parentPath = parentPath;
+
     }
 
     onUpdatesFromClient(input: NodeState, target: Core.Node) {
         const updateTask = new GMENodeUpdate(
             this.shadow,
-            input,
+            deepCopy(input),
             target,
             this.importer,
-            this.onPatchComplete.bind(this)
+            this.onPatchComplete.bind(this),
+            this.parentPath
         );
         this.updateQueue.request(updateTask);
         return Promise.resolve();

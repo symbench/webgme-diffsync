@@ -94,6 +94,13 @@ export function diffNodeStates(prev: Partial<NodeState>, new_: Partial<NodeState
     return diffs;
 }
 
+function deleteChild(state: NodeState, childId: string) {
+    const toDeleteIndex = state.children.findIndex(child => child.id === childId);
+    if(toDeleteIndex > -1) {
+        state.children.splice(toDeleteIndex, 1);
+    }
+}
+
 export function nodeStatePatch(state: NodeState, patches: NodeChangeSet[]) {
     const cache = new StateCache(state);
     patches.forEach(patch => {
@@ -104,7 +111,7 @@ export function nodeStatePatch(state: NodeState, patches: NodeChangeSet[]) {
                 key === 'children' ? state.children.push(patch.value): diff.apply([patch], patchState, true);
                 break;
             case ChangeType.DEL:
-                key === 'children'? state.children = [] : diff.apply([patch], patchState, true);
+                key === 'children'? deleteChild(state, patch.value) : diff.apply([patch], patchState, true);
                 break;
         }
     });

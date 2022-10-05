@@ -99,9 +99,12 @@ define([
             const nodeJSON = await importer.toJSON(node);
 
             if(!this.synchronizer) {
+                const parent = core.getParent(node);
+                const parentPath = core.getPath(parent);
                 this.synchronizer = new WJIDiffSync(
                     importer,
-                    WJIDiffSync.deepCopy(nodeJSON)
+                    WJIDiffSync.deepCopy(nodeJSON),
+                    parentPath
                 );
                 this.clientState = WJIDiffSync.deepCopy(nodeJSON);
             } else {

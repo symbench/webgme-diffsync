@@ -4,7 +4,7 @@
     "noImplicitAny": true,
     "removeComments": true,
     "preserveConstEnums": true,
-    "outDir": "lib/common/build/",
+    "outDir": "src/common/build/",
     "sourceMap": true,
     "moduleResolution": "node",
     "target": "ES6",

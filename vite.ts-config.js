@@ -11,6 +11,7 @@ export default defineConfig({
             name: 'WJIDiffSync',
         },
         outDir: 'src/common/build',
+        sourcemap: true,
     },
     plugins: [dts()]
 });
