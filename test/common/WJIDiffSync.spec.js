@@ -141,6 +141,17 @@ describe('WebGMEDiffSyncer', function () {
                 await delay(1000);
                 assert(clientState.children.length === currentLength - 1, JSON.stringify({currentLength, prev: clientState.children.length}));
             });
+
+            it('should not patch attributes removed by server', async () => {
+                const children = await core.loadChildren(targetSubtree);
+                clientState.children.forEach(child => child.attributes.shortName = 'myContinent');
+
+                children.forEach(child => core.delAttribute(child, 'shortName')); // Deletes Attributes
+                diffSync.onUpdatesFromServer(targetSubtree, clientState);
+                diffSync.onUpdatesFromClient(clientState, targetSubtree); // Updates Name
+                await delay(1000);
+                clientState.children.forEach(child => assert(!child.attributes.shortName, 'attribute not removed but patched'));
+            });
         });
 
         describe('pointers', function () {

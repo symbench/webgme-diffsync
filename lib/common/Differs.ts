@@ -106,6 +106,7 @@ export function nodeStatePatch(state: NodeState, patches: NodeChangeSet[]) {
     patches.forEach(patch => {
         const patchState = cache.get(patch.nodeId);
         const key = patch.key[0];
+
         switch (patch.type) {
             case ChangeType.PUT:
                 key === 'children' ? state.children.push(patch.value): diff.apply([patch], patchState, true);
