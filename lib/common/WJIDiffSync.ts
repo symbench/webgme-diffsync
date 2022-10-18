@@ -164,6 +164,10 @@ class Queue<T> {
     get length() {
         return this._internal.length;
     }
+
+    toList(): T[] {
+        return Array.from(this._internal);
+    }
 }
 
 export class UpdateQueue {
@@ -217,7 +221,7 @@ export class WJIDiffSync implements GMEDiffSync<Core.Node, NodeState, NodeState>
     onUpdatesFromClient(input: NodeState, target: Core.Node) {
         const updateTask = new GMENodeUpdate(
             this.shadow,
-            deepCopy(input),
+            input,
             target,
             this.importer,
             this.onPatchComplete.bind(this),
@@ -263,5 +267,13 @@ export class WJIDiffSync implements GMEDiffSync<Core.Node, NodeState, NodeState>
             failureReason: err.message,
             data: data
         });
+    }
+
+    recentServerFailures(): FailedPatch<NodeChangeSetPatch>[] {
+        return this.serverUpdateFailures.toList();
+    }
+
+    recentClientFailures(): FailedPatch<NodeChangeSetPatch>[] {
+        return this.clientUpdateFailures.toList();
     }
 }
