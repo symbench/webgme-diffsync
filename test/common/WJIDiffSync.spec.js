@@ -139,7 +139,10 @@ describe('WebGMEDiffSyncer', function () {
                 diffSync.onUpdatesFromClient(clientState, targetSubtree);
 
                 await delay(1000);
-                assert(clientState.children.length === currentLength - 1, JSON.stringify({currentLength, prev: clientState.children.length}));
+                assert(clientState.children.length === currentLength - 1, JSON.stringify({
+                    currentLength,
+                    prev: clientState.children.length
+                }));
             });
 
             it('should not patch attributes removed by server', async () => {
@@ -155,6 +158,140 @@ describe('WebGMEDiffSyncer', function () {
             });
         });
 
+        describe('attribute_meta', function () {
+            it('should sync attribute_meta changes from the client', async () => {
+                const attrMeta = {
+                    type: 'string',
+                    description: 'A dummy name description'
+                };
+                clientState.children[0].attribute_meta.name = attrMeta;
+
+                const {name} = clientState.children[0].attributes;
+
+                await diffSync.onUpdatesFromClient(clientState, targetSubtree);
+                await delay(50);
+                const targetChild = (await core.loadChildren(targetSubtree)).find(node => core.getAttribute(node, 'name') === name);
+                const gmeAttributeMeta = core.getAttributeMeta(targetChild, 'name')
+                assert.deepEqual(gmeAttributeMeta, attrMeta, 'Attribute meta change not propagated');
+            });
+
+            it('should sync client/server attribute_meta set/removal', async () => {
+                const firstChild = (await core.loadChildren(targetSubtree))[0];
+                const firstChildName = core.getAttribute(firstChild, 'name');
+                const attrMeta = {
+                    type: 'string',
+                    description: 'A dummy name description'
+                };
+
+                core.setAttributeMeta(firstChild, 'name', attrMeta);
+
+                await diffSync.onUpdatesFromServer(targetSubtree, clientState);
+                await delay(50);
+                const child = clientState.children.find(child => child.attributes.name === firstChildName);
+                assert.deepEqual(child.attribute_meta.name, attrMeta);
+                delete child.attribute_meta.name;
+                await diffSync.onUpdatesFromClient(clientState, targetSubtree);
+                await delay(50);
+                assert.equal(core.getAttributeMeta(firstChild, 'name').description, undefined, 'attribute_meta not removed');
+            });
+
+            it('should not update attribute_meta for a removed node', async () => { // ToDo: is the reverse update possible?
+                let firstChild = (await core.loadChildren(targetSubtree))[0];
+                const firstChildName = core.getAttribute(firstChild, 'name');
+                let firstChildState = clientState.children.find(child => child.attributes.name === firstChildName);
+                core.deleteNode(firstChild);
+                diffSync.onUpdatesFromServer(targetSubtree, clientState);
+                const attrMeta = {
+                    type: 'string',
+                    description: 'A dummy name description'
+                };
+
+                firstChildState.attribute_meta.name = attrMeta;
+
+                await diffSync.onUpdatesFromClient(clientState, targetSubtree);
+
+                await delay(50);
+                firstChild = (await core.loadChildren(targetSubtree))[0];
+                assert.equal(core.getAttributeMeta(firstChild, 'type'), undefined, 'attribute_meta applied to wrong child');
+            });
+
+            it('should reflect multiple attribute_meta updates from different clients', async () => {
+                const diffSync2 = new WJIDiffSync(
+                    importer,
+                    deepCopy(diffSync.shadow)
+                );
+
+                const clientState2 = deepCopy(clientState);
+
+                const attrMeta1 = {
+                    type: 'string',
+                    description: 'A dummy name description1'
+                };
+
+                const attrMeta2 = {
+                    type: 'string',
+                    description: 'A dummy name description2'
+                };
+
+                const child1 = clientState.children[0].children[10];
+                const child2 = clientState2.children[3].children[20];
+                const name1 = child1.attributes.name;
+                const name2 = child2.attributes.name
+                const parentName1 = clientState.children[0].attributes.name;
+                const parentName2 = clientState2.children[3].attributes.name;
+
+                child1.attribute_meta.name = attrMeta1;
+                child2.attribute_meta.name = attrMeta2;
+                const targetSubtree2 = await core.loadByPath(rootNode, '/t');
+                diffSync.onUpdatesFromClient(clientState, targetSubtree);
+                diffSync2.onUpdatesFromClient(clientState2, targetSubtree2);
+                diffSync2.onUpdatesFromServer(targetSubtree2, clientState2);
+                await delay(200); // Delay here but will be triggered by GME events
+                diffSync.onUpdatesFromServer(targetSubtree, clientState);
+
+
+                const gmeParent1 = await findChildByName(core, targetSubtree, parentName1);
+                const gmeParent2 = await findChildByName(core, targetSubtree2, parentName2);
+                const gmeChild1 = await findChildByName(core, gmeParent1, name1);
+                const gmeChild2 = await findChildByName(core, gmeParent2, name2);
+                assert.deepEqual(core.getAttributeMeta(gmeChild1, 'name'), attrMeta1);
+                assert.deepEqual(core.getAttributeMeta(gmeChild2, 'name'), attrMeta2);
+                assert.deepEqual(clientState, clientState2);
+            });
+
+            it('should fork on simultaneous updates to the same subtree', async () => {
+                // ToDo: What should be the behavior? Will WebGME handle it?
+            });
+
+        });
+
+        describe('registry', function () {
+            it('should sync registry values changes from the client', async () => {
+                clientState.registry.name = 'hello world';
+                await diffSync.onUpdatesFromClient(clientState, targetSubtree);
+                await delay(1);
+                assert.equal(core.getRegistry(targetSubtree, 'name'), 'hello world', 'registry value not synced');
+            });
+
+            it('should sync client/server registry set/removal', async () => {
+                // const firstChild = (await core.loadChildren(targetSubtree))[0];
+
+            });
+
+            it('should not update attribute_meta for a removed node', async () => { // ToDo: is the reverse update possible?
+
+            });
+
+            it('should reflect multiple attribute_meta updates from different clients', async () => {
+
+            });
+
+            it('should fork on simultaneous updates to the same subtree', async () => {
+                // ToDo: What should be the behavior? Will WebGME handle it?
+            });
+
+        });
+
         describe('pointers', function () {
             it('should change the base pointer to FCO on change from client', async () => {
                 const fco = await core.loadByPath(rootNode, '/1');
@@ -164,7 +301,7 @@ describe('WebGMEDiffSyncer', function () {
                 await delay(100);
 
                 const firstChild = await core.loadByPath(rootNode, clientState.children[0].path);
-                assert (core.getPointerPath(firstChild, 'base') === '/1');
+                assert(core.getPointerPath(firstChild, 'base') === '/1');
             });
         });
 
@@ -188,4 +325,8 @@ function delay(ms) {
             resolve();
         }, ms);
     });
+}
+
+async function findChildByName(core, parent, name) {
+    return (await core.loadChildren(parent)).find(node => core.getAttribute(node, 'name') === name);
 }

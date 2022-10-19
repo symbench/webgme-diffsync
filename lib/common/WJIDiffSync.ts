@@ -2,7 +2,6 @@ import {Delta, DiffSyncTask, DiffSyncTaskStatus, FailedPatch, GMEDiffSync} from 
 import JSONImporter, {NodeChangeSet} from 'webgme-json-importer/lib/common/JSONImporter';
 import NodeState from 'webgme-json-importer/lib/common/JSONImporter/NodeState';
 import {diffNodeStates, nodePatch, nodeStatePatch} from './Differs';
-import {deepCopy} from './Utils';
 
 
 class NodeChangeSetPatch implements Delta<NodeState> {
@@ -19,7 +18,7 @@ class NodeChangeSetPatch implements Delta<NodeState> {
     }
 }
 
-class GMENodeUpdate implements DiffSyncTask<NodeState, Core.Node> {
+class GMENodeUpdate implements DiffSyncTask<NodeState, NodeState, Core.Node> {
     shadow: NodeState;
     state: NodeState;
     target: Core.Node;
@@ -48,7 +47,7 @@ class GMENodeUpdate implements DiffSyncTask<NodeState, Core.Node> {
         this.onFailed = onFailed;
     }
 
-    diff(): Delta<NodeState> {
+    async diff(): Promise<Delta<NodeState>> {
         const diffs = diffNodeStates(this.shadow, this.state, this.parentPath);
         return {
             timeStamp: Date.now(),
@@ -75,22 +74,24 @@ class GMENodeUpdate implements DiffSyncTask<NodeState, Core.Node> {
 
 }
 
-class NodeStateUpdate implements DiffSyncTask<NodeState, NodeState> {
+class NodeStateUpdate implements DiffSyncTask<Core.Node, NodeState, NodeState> {
     shadow: NodeState;
-    state: NodeState;
+    state: Core.Node;
     target: NodeState;
     parentPath: string;
     onComplete: (finalState: NodeState) => void;
     onFailed: (e: Error, data: Delta<NodeState>) => void;
     status: DiffSyncTaskStatus = DiffSyncTaskStatus.PENDING;
+    importer: JSONImporter;
 
     constructor(
         shadow: NodeState,
-        state: NodeState,
+        state: Core.Node,
         target: NodeState,
         onComplete: (finalState: NodeState) => void,
         onFailed: (e: Error, data: Delta<NodeState>) => void,
-        parentPath = ''
+        parentPath = '',
+        importer: JSONImporter
     ) {
         this.shadow = shadow;
         this.state = state;
@@ -98,17 +99,19 @@ class NodeStateUpdate implements DiffSyncTask<NodeState, NodeState> {
         this.onComplete = onComplete;
         this.onFailed = onFailed;
         this.parentPath = parentPath;
+        this.importer = importer
     }
 
-    diff(): Delta<NodeState> {
-        const diffs = diffNodeStates(this.shadow, this.state, this.parentPath || '');
+    async diff(): Promise<Delta<NodeState>> {
+        const stateJSON = await this.importer.toJSON(this.state);
+        const diffs = diffNodeStates(this.shadow, stateJSON, this.parentPath || '');
         return {
             timeStamp: Date.now(),
             patches: diffs
         };
     }
 
-    patch(diff: Delta<NodeState>): Promise<void> {
+    async patch(diff: Delta<NodeState>): Promise<void> {
         try {
             this.status = DiffSyncTaskStatus.RUNNING;
             nodeStatePatch(this.target, diff.patches);
@@ -118,9 +121,8 @@ class NodeStateUpdate implements DiffSyncTask<NodeState, NodeState> {
             this.onFailed(e as Error, diff);
         }
         if (this.onComplete) {
-            this.onComplete(this.state);
+            this.onComplete(await this.importer.toJSON(this.state) as NodeState);
         }
-        return Promise.resolve();
     }
 
 }
@@ -232,13 +234,14 @@ export class WJIDiffSync implements GMEDiffSync<Core.Node, NodeState, NodeState>
     }
 
     async onUpdatesFromServer(input: Core.Node, target: NodeState): Promise<void> {
-        const inputState = await this.importer.toJSON(input) as NodeState;
         const updateTask = new NodeStateUpdate(
             this.shadow,
-            inputState,
+            input,
             target,
             this.onPatchComplete.bind(this),
-            this.onClientPatchFailed.bind(this)
+            this.onClientPatchFailed.bind(this),
+            this.parentPath,
+            this.importer
         );
         this.updateQueue.request(updateTask);
     }
@@ -269,11 +272,11 @@ export class WJIDiffSync implements GMEDiffSync<Core.Node, NodeState, NodeState>
         });
     }
 
-    recentServerFailures(): FailedPatch<NodeChangeSetPatch>[] {
-        return this.serverUpdateFailures.toList();
+    recentClientFailures() {
+        return this.clientUpdateFailures.toList();
     }
 
-    recentClientFailures(): FailedPatch<NodeChangeSetPatch>[] {
-        return this.clientUpdateFailures.toList();
+    recentServerFailures() {
+        return this.serverUpdateFailures.toList();
     }
 }

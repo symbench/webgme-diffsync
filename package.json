@@ -8,7 +8,7 @@
     "build:lib": "vite build -c vite.ts-config.js",
     "build:svelte": "vite build -c vite.svelte-config.js",
     "watch:lib": "tsc --watch",
-    "test": "node ./node_modules/mocha/bin/mocha --recursive test"
+    "test": "node ./node_modules/mocha/bin/mocha --require source-map-support/register --recursive test"
   },
   "version": "1.0.0",
   "peerDependencies": {
@@ -24,6 +24,7 @@
     "changeset": "github:deepforge-dev/changeset",
     "eslint": "^8.23.0",
     "mocha": "^5.2.0",
+    "source-map-support": "^0.5.21",
     "svelte": "^3.50.1",
     "svelte-jsoneditor": "^0.7.4",
     "svelte-preprocess": "^4.10.7",

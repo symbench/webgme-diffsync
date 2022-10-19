@@ -23,11 +23,11 @@ export interface FailedPatch<T2> {
 // 3. Update Shadow with clientText
 // All these tasks are atomic but not blocking
 
-export interface DiffSyncTask<T2, T3> {
+export interface DiffSyncTask<T1, T2, T3> {
     shadow: T2;
-    state: T2;
+    state: T1;
     target: T3;
-    diff: () => Delta<T2>;
+    diff: () => Promise<Delta<T2>>;
     patch: (patches: Delta<T2>) => Promise<void>;
     onComplete: (finalState: T2) => void;
     onFailed: (e: Error, data: Delta<T2>) => void;
